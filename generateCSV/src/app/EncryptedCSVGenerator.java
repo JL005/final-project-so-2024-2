@@ -10,8 +10,8 @@ import java.util.Random;
 public class EncryptedCSVGenerator {
 
     private static final String[] HEADERS = {
-        "numero_tarjeta_debito", "cvv", "fecha_expiracion",
-        "dueno_cuenta", "numero_cuenta", "banco"
+        "numeroTarjetaDebito", "cvv", "fechaExpiracion",
+        "duenoCuenta", "numeroCuenta", "banco", "numeroDocumento", "tipoDocumento"
     };
 
     private static final String[] BANK_NAMES = {
@@ -36,7 +36,7 @@ public class EncryptedCSVGenerator {
             csvWriter.append(String.join(",", HEADERS)).append("\n");
 
             // Generar y escribir 100 filas de datos aleatorios encriptados
-            for (int i = 0; i < 10000000; i++) {
+            for (int i = 0; i < 10; i++) {
                 String[] row = generateRandomData();
                 for (int j = 0; j < row.length; j++) {
                     String encryptedData = encrypt(row[j]);
@@ -68,8 +68,10 @@ public class EncryptedCSVGenerator {
         String accountOwner = "Usuario " + (random.nextInt(9000) + 1000); // Nombre de usuario aleatorio
         String accountNumber = String.format("%09d", random.nextInt(1000000000)); // Número de cuenta de 9 dígitos
         String bankName = BANK_NAMES[random.nextInt(BANK_NAMES.length)]; // Banco aleatorio
+        String documentNumber = String.format("%010d", random.nextLong() & Long.MAX_VALUE);
+        String documentType = String.format("%01d",random.nextInt(4)+1);
 
-        return new String[]{cardNumber, cvv, expirationDate, accountOwner, accountNumber, bankName};
+        return new String[]{cardNumber, cvv, expirationDate, accountOwner, accountNumber, bankName, documentNumber, documentType};
     }
 
 }
