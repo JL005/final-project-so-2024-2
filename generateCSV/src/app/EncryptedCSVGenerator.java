@@ -36,7 +36,7 @@ public class EncryptedCSVGenerator {
             csvWriter.append(String.join(",", HEADERS)).append("\n");
 
             // Generar y escribir 100 filas de datos aleatorios encriptados
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 10000; i++) {
                 String[] row = generateRandomData();
                 for (int j = 0; j < row.length; j++) {
                     String encryptedData = encrypt(row[j]);

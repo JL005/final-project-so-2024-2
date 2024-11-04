@@ -1,12 +1,15 @@
 package com.so2042.finalproject.serial.service;
 
+import com.so2042.finalproject.global.entity.ClientInfo;
 import com.so2042.finalproject.global.service.DatabaseService;
 import com.so2042.finalproject.global.service.DecryptionService;
 import com.so2042.finalproject.global.service.FileReaderService;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -25,7 +28,7 @@ public class SerialProcessing {
     }
 
 
-    public String execute(String filePath){
+    public String execute(String filePath) throws FileNotFoundException {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             long startTime = System.currentTimeMillis();
@@ -35,21 +38,32 @@ public class SerialProcessing {
                 line = line.trim();
                 String[] encryptedFields = line.split(",");
 
-                for (String encryptedField : encryptedFields) {
-                    // Limpiar el campo de caracteres de espacio en blanco
-                    String sanitizedField = encryptedField.replaceAll("\\s", "");
-                    // Desencriptar el campo y guardarlo en la base de datos
-                    String decryptedData = decryptionService.decrypt(sanitizedField);
-                    System.out.println(decryptedData);
+                if (encryptedFields.length == 8) { // Verificar que haya 8 campos
+                    try {
+                        // Crear un nuevo objeto CardInfo
+                        ClientInfo clientInfo = new ClientInfo();
+                        clientInfo.setCardNumber(decryptionService.decrypt(encryptedFields[0].replaceAll("\\s", "")));
+                        clientInfo.setSecurityCode(decryptionService.decrypt(encryptedFields[1].replaceAll("\\s", "")));
+                        clientInfo.setExpirationDate(decryptionService.decrypt(encryptedFields[2].replaceAll("\\s", "")));
+                        clientInfo.setOwnerAccount(decryptionService.decrypt(encryptedFields[3].replaceAll("\\s", "")));
+                        clientInfo.setAccountNumber(decryptionService.decrypt(encryptedFields[4].replaceAll("\\s", "")));
+                        clientInfo.setBank(decryptionService.decrypt(encryptedFields[5].replaceAll("\\s", "")));
+                        clientInfo.setIdentificationNumber(decryptionService.decrypt(encryptedFields[6].replaceAll("\\s", "")));
+                        clientInfo.setIdentificationType(decryptionService.decrypt(encryptedFields[7].replaceAll("\\s", "")));
+                        this.databaseService.save(clientInfo);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             long endTime = System.currentTimeMillis();
             long executionTime = endTime - startTime;
-            return String.format("%d", executionTime);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-            //return "Error: " + e.getMessage();
-        }
-    }
+            return String.format("Finaliza despues de %d ms", executionTime);
 
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 }
+

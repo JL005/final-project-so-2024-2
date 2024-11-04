@@ -16,7 +16,6 @@ public class DecryptionService {
         SecretKey key = new SecretKeySpec(SECRET_KEY.getBytes(), ALGORITHM);
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key);
-        System.out.println(encryptedData);
         byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
         return new String(decryptedBytes);
     }

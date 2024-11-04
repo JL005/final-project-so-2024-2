@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileNotFoundException;
+
 @RestController
 @RequestMapping()
 public class ProcessingController {
@@ -20,7 +22,7 @@ public class ProcessingController {
 
 
     @PostMapping("/serial")
-    public ResponseEntity<String> processSerial(@RequestBody DTO dto) {
+    public ResponseEntity<String> processSerial(@RequestBody DTO dto) throws FileNotFoundException {
         System.out.println(dto.getFilePath());
         return new ResponseEntity<>(this.serialProcessing.execute(dto.getFilePath()), HttpStatus.OK);
     }

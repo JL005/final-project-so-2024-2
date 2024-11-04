@@ -1,8 +1,7 @@
 package com.so2042.finalproject.global.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -14,6 +13,8 @@ import lombok.*;
 public class ClientInfo {
 
     @Id
+    @Column(name = "id", nullable = false, unique = true)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
 
     private String cardNumber;
@@ -24,6 +25,13 @@ public class ClientInfo {
 
     private String ownerAccount;
 
+    private String accountNumber;
+
+    private String bank;
+
+    private String identificationNumber;
+
+    private String identificationType;
 
     private String email;
 

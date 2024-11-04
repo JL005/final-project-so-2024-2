@@ -13,8 +13,7 @@ public class DatabaseService {
         this.clientInfoRepository = clientInfoRepository;
     }
 
-    public void save(){
-        ClientInfo clientInfo = new ClientInfo();
-
+    public void save(ClientInfo clientInfo){
+        this.clientInfoRepository.save(clientInfo);
     }
 }
