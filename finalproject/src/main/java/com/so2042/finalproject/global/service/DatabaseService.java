@@ -16,4 +16,8 @@ public class DatabaseService {
     public void save(ClientInfo clientInfo){
         this.clientInfoRepository.save(clientInfo);
     }
+
+    public int findAll(){
+        return this.clientInfoRepository.findAll().size();
+    }
 }

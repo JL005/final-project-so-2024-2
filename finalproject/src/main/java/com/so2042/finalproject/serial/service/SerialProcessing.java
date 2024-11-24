@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +33,7 @@ public class SerialProcessing {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             long startTime = System.currentTimeMillis();
+            List<ClientInfo> clientInfoList = new ArrayList<>();
             reader.readLine();
             while ((line = reader.readLine()) != null) {
                 // Limpiar la línea de caracteres de espacio en blanco
@@ -50,11 +52,14 @@ public class SerialProcessing {
                         clientInfo.setBank(decryptionService.decrypt(encryptedFields[5].replaceAll("\\s", "")));
                         clientInfo.setIdentificationNumber(decryptionService.decrypt(encryptedFields[6].replaceAll("\\s", "")));
                         clientInfo.setIdentificationType(decryptionService.decrypt(encryptedFields[7].replaceAll("\\s", "")));
-                        this.databaseService.save(clientInfo);
+                        clientInfoList.add(clientInfo);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+            for (ClientInfo clientInfo : clientInfoList) {
+                this.databaseService.save(clientInfo);
             }
             long endTime = System.currentTimeMillis();
             long executionTime = endTime - startTime;
@@ -63,7 +68,6 @@ public class SerialProcessing {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 }
 
