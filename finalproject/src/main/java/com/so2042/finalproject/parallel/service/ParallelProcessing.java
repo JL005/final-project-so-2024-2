@@ -17,7 +17,6 @@ public class ParallelProcessing {
 
     private final DecryptionService decryptionService;
     private final DatabaseService databaseService;
-    private static int IEE = 0;
 
     public ParallelProcessing(DecryptionService decryptionService, DatabaseService databaseService) {
         this.decryptionService = decryptionService;
@@ -65,8 +64,6 @@ public class ParallelProcessing {
             clientInfo.setBank(decryptionService.decrypt(encryptedFields[5].trim()));
             clientInfo.setIdentificationNumber(decryptionService.decrypt(encryptedFields[6].trim()));
             clientInfo.setIdentificationType(decryptionService.decrypt(encryptedFields[7].trim()));
-            IEE++;
-            System.out.println(IEE);
             return clientInfo;
         } catch (Exception e) {
             throw new RuntimeException("Error al procesar la línea: " + e.getMessage(), e);
