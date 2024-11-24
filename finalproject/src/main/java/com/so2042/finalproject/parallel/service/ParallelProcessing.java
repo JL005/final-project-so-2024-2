@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,6 +20,9 @@ public class ParallelProcessing {
 
     private final DecryptionService decryptionService;
     private final DatabaseService databaseService;
+
+    // Estructura para monitorear los hilos utilizados
+    private final ConcurrentMap<String, Boolean> threadMap = new ConcurrentHashMap<>();
 
     public ParallelProcessing(DecryptionService decryptionService, DatabaseService databaseService) {
         this.decryptionService = decryptionService;
@@ -26,29 +32,43 @@ public class ParallelProcessing {
     public String execute(String filePath) throws FileNotFoundException {
         long startTime = System.currentTimeMillis();
 
+        // Crear un ForkJoinPool con 4 hilos
+        ForkJoinPool customPool = new ForkJoinPool(4);
+
         try {
-            // Etapa 1: Leer el archivo y cargar líneas (lectura como tarea paralela)
-            List<String> lines = Files.lines(Path.of(filePath))
-                    .skip(1) // Omitir la cabecera
-                    .collect(Collectors.toList());
+            customPool.submit(() -> {
+                try {
+                    // Etapa 1: Leer el archivo y cargar líneas
+                    List<String> lines = Files.lines(Path.of(filePath))
+                            .skip(1) // Omitir la cabecera
+                            .collect(Collectors.toList());
 
-            // Etapa 2: Procesar líneas para crear objetos ClientInfo (desencriptar y mapear)
-            List<ClientInfo> clientInfoList = lines.parallelStream()
-                    .map(this::processLine) // Desencriptar y mapear a ClientInfo
-                    .collect(Collectors.toList());
+                    // Etapa 2: Procesar líneas para crear objetos ClientInfo
+                    List<ClientInfo> clientInfoList = lines.parallelStream()
+                            .map(this::processLine)
+                            .collect(Collectors.toList());
 
-            // Etapa 3: Guardar los objetos en la base de datos (guardar como tarea paralela)
-            clientInfoList.parallelStream().forEach(databaseService::save);
+                    // Etapa 3: Guardar los objetos en la base de datos
+                    clientInfoList.parallelStream().forEach(databaseService::save);
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error al leer el archivo", e);
+                }
+            }).join();
+        } finally {
+            customPool.shutdown();
         }
+
         long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
-        return String.format("Finaliza despues de %d ms", executionTime);
+        return String.format("Finaliza después de %d ms", executionTime);
     }
 
     private ClientInfo processLine(String line) {
+        // Registrar el hilo actual
+        String threadName = Thread.currentThread().getName();
+        threadMap.putIfAbsent(threadName, true);
+
         String[] encryptedFields = line.split(",");
         if (encryptedFields.length != 8) {
             throw new IllegalArgumentException("Formato de línea incorrecto: " + line);
@@ -69,5 +89,4 @@ public class ParallelProcessing {
             throw new RuntimeException("Error al procesar la línea: " + e.getMessage(), e);
         }
     }
-
 }
